@@ -29,7 +29,7 @@ const ProductForm = () => {
       <div className="space-y-2">
         <Label htmlFor="description" >Description</Label>
         <Textarea id="description" name="description" required />  
-      {error.desciption && <div className="text-destructive">{error.desciption}</div>}
+      {error.description && <div className="text-destructive">{error.description}</div>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="file" >File</Label>

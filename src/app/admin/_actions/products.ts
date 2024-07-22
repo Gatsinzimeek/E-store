@@ -2,7 +2,7 @@
 import {z} from "zod";
 import fs from "fs/promises"
 import db from "@/db/db";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 const fileSchema = z.instanceof(File, {message: "Required"})
 const imageSchema = fileSchema.refine(file => file.size === 0 || file.type.startsWith("image/"))
@@ -10,7 +10,7 @@ const imageSchema = fileSchema.refine(file => file.size === 0 || file.type.start
 
 const AddSchema = z.object({
     name: z.string().min(1),
-    desciption: z.string().min(1),
+    description: z.string().min(1),
     priceInCents: z.coerce.number().int(),
     file: fileSchema.refine(file => file.size > 0, "Required"),
     image: imageSchema.refine(file => file.size > 0, "Required")
@@ -30,10 +30,11 @@ export const Addproduct = async(prevstate: unknown, formData: FormData)=> {
         await fs.writeFile(`public${imagepath}`, Buffer.from(await data.image.arrayBuffer()))
 
         await db.product.create({data: {
+            isAvailableForPurchase: false,
             name: data.name,
             priceInCents: data.priceInCents,
             filePath: filepath,
-            description: data.desciption,
+            description: data.description,
             imagePath: imagepath,
         }})
 
@@ -43,3 +44,13 @@ export const Addproduct = async(prevstate: unknown, formData: FormData)=> {
     }
 }
 
+
+export const toggleProductAvailability = async (id:string, isAvailableForPurchase: boolean) => {
+    await db.product.update({where: {id}, data: {isAvailableForPurchase}})
+}
+
+export const deleteProduct = async (id:string) => {
+    const product = await db.product.delete({where: {id}})
+
+    if(product === null) return notFound()
+}
