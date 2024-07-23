@@ -7,7 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Addproduct } from "../../_actions/products";
 import { useFormState, useFormStatus } from "react-dom";
-const ProductForm = () => {
+import { Product } from "@prisma/client";
+const ProductForm = ({product}: {product?: Product | null}) => {
   const [priceInCents, setPriceInCents] = useState<number >()
   const [error, action] = useFormState(Addproduct, {});
 
