@@ -6,24 +6,24 @@ import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { ProductCardSkeleton } from "@/components/ProductCard"
 import { Suspense } from "react"
+import { cache } from "@/lib/caching"
 
-const GetMostPopular = () => {
+const GetMostPopular = cache(() => {
     return db.product.findMany({
         where: {isAvailableForPurchase: true},
         orderBy: {orders: { _count: "desc"}},
         take: 6
     })
-}
+},["/", "GetMostPopular"], {revalidate: 60 * 60 * 24})
 
 
-
-const GetNewsestProduct = () => {
+const GetNewsestProduct = cache(() => {
     return db.product.findMany({
         where: {isAvailableForPurchase: true},
         orderBy: {createAt: "desc"},
         take: 6
     })
-}
+},["/","GetNewsestProduct"], {revalidate: 60*60*24})
 
 const page = () => {
   return (

@@ -7,7 +7,3 @@ export const cache = <TF extends Callback>(Cb: TF, keyparts:string[], options: {
     return nextcache(reactcache(Cb), keyparts, options)
 }
 
-
-// function cache<T extends Callback>(cb: T, keyparts, options){
-
-// }
