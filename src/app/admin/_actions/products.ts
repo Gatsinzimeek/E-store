@@ -3,6 +3,7 @@ import {z} from "zod";
 import fs from "fs/promises"
 import db from "@/db/db";
 import { notFound, redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 const fileSchema = z.instanceof(File, {message: "Required"})
 const imageSchema = fileSchema.refine(file => file.size === 0 || file.type.startsWith("image/"))
@@ -36,7 +37,8 @@ export const Addproduct = async(prevstate: unknown, formData: FormData)=> {
             description: data.description,
             imagePath: imagepath,
         }})
-
+        revalidatePath("/")
+        revalidatePath("/products")
         redirect("/admin/products")
     }else{
         return  result.error.formErrors.fieldErrors
@@ -46,12 +48,21 @@ export const Addproduct = async(prevstate: unknown, formData: FormData)=> {
 
 export const toggleProductAvailability = async (id:string, isAvailableForPurchase: boolean) => {
     await db.product.update({where: {id}, data: {isAvailableForPurchase}})
+    
+    revalidatePath("/")
+    revalidatePath("/products")
 }
 
 export const deleteProduct = async (id:string) => {
     const product = await db.product.delete({where: {id}})
 
     if(product === null) return notFound()
+
+    await fs.unlink(product.filePath)
+    await fs.unlink(`product/${product.filePath}`)
+    
+    revalidatePath("/")
+    revalidatePath("/products")
 }
 
 const editSchema = AddSchema.extend({
@@ -91,7 +102,9 @@ export const updateproduct = async(id:string, prevstate: unknown, formData: Form
             description: data.description,
             imagePath
         }})
-
+        
+        revalidatePath("/")
+        revalidatePath("/products")
         redirect("/admin/products")
     }else{
         return  result.error.formErrors.fieldErrors

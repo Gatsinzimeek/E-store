@@ -27,7 +27,7 @@ const ProductCard = ({name, priceInCents, description, id, imagePath}: ProductCa
         </CardContent>
         <CardFooter>
             <Button asChild size="lg" className="w-full">
-                <Link href={`/product/${id}/purchase`}>Purchase</Link>
+                <Link href={`/products/${id}/purchase`}>Purchase</Link>
             </Button>
         </CardFooter>
     </Card>
