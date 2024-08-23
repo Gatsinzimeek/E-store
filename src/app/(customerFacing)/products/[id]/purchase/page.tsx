@@ -2,7 +2,7 @@ import db from "@/db/db"
 import { notFound } from "next/navigation";
 import { Stripe } from "stripe";
 import CheckOutForm from "./_Component/CheckOutForm";
-const stripe = new Stripe(process.env.Stripe_Secret_Key as string)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string)
 
 const Purchasepage = async ({params: {id}}: {params: {id: string}}) => {
     const product = await db.product.findUnique({where: {id}});
@@ -15,7 +15,7 @@ const Purchasepage = async ({params: {id}}: {params: {id: string}}) => {
     })
 
     if(PaymentIntent.client_secret == null) {
-      throw Error("stripe ")
+      throw Error("stripe not working Effectively");
     }
     return (
       <CheckOutForm  product={product} clientSecret={PaymentIntent.client_secret}/>

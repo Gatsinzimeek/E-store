@@ -16,7 +16,7 @@ const ProductCard = ({name, priceInCents, description, id, imagePath}: ProductCa
   return (
     <Card className="flex flex-col overflow-hidden">
         <div className="relative w-full h-auto aspect-video">
-            <Image src={imagePath} fill alt={name}/>
+            <Image src={imagePath} className="object-cover" fill alt={name}/>
         </div>
         <CardHeader>
             <CardTitle>{name}</CardTitle>
