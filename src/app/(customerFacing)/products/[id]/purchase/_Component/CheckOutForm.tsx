@@ -2,12 +2,14 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurreny } from "@/lib/formatter"
-import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js"
+import { Elements, LinkAuthenticationElement, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js"
 import { loadStripe } from "@stripe/stripe-js"
 import Image from "next/image"
+import UserOrderExist from "@/app/Actions/order"
 import { FormEvent, useState } from "react"
 type CheckOutFormProps = {
     product: {
+      id: string
       imagePath: string
       name: string
       description: string
@@ -26,7 +28,7 @@ const CheckOutForm = ({product, clientSecret}: CheckOutFormProps ) => {
       </div>
       <div>
           <div className="text-lg">
-            {formatCurreny(product.priceInCents)}
+            {formatCurreny(product.priceInCents / 100)}
           </div>
           <h1>{product.name}</h1>
           <div className="line-clamp-3 text-muted-foreground">
@@ -35,30 +37,52 @@ const CheckOutForm = ({product, clientSecret}: CheckOutFormProps ) => {
       </div>
     </div>
     <Elements stripe={stripePromise} options={{clientSecret}}>
-        <Form priceInCents={product.priceInCents} />
+        <Form priceInCents={product.priceInCents} productId={product.id} />
     </Elements>
   </div>
   )
 }
 
-const Form = ( {priceInCents} : { priceInCents: number}) => {
+const Form = ( {priceInCents, productId} : { productId: string, priceInCents: number}) => {
   const stripe = useStripe();
-  const Element = useElements();
+  const elements = useElements();
   const [IsLoading, setIsLoading] = useState(false);
-  const handleForm = (e:FormEvent)=> {
+  const [Error, setErrorMessage] = useState<string>()
+  const [email, setEmail] = useState<string>()
+  const handleForm = async (e:FormEvent)=> {
     e.preventDefault();
-    if(stripe == null || Element == null) return
+    if(stripe == null || elements == null || email == null) return
       setIsLoading(true)
+     
+      const OrderExists = await UserOrderExist(email, productId)
+    if(OrderExists) {
+      setErrorMessage("You have already purchased check it in my order page");
+      return
+    }
+    stripe.confirmPayment({elements, confirmParams: {
+      return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/stripe/purchase-success`
+    }}).then(({error}) => {
+      if(error?.type == "card_error" || error?.type == "validation_error") {
+        setErrorMessage(error.message)
+      }else{
+        setErrorMessage("Error occured is Unknown");
+      }
+    }).finally(() => setIsLoading(false));
   }
   return (
     <form onSubmit={handleForm}>
       <Card>
         <CardHeader>
           <CardTitle>Checkout</CardTitle>
-          <CardDescription className="text-destructive">Error</CardDescription>
+          {Error && (
+            <CardDescription className="text-destructive">${Error}</CardDescription>
+          )}
         </CardHeader>
         <CardContent>
            <PaymentElement />
+            <div className="mt-4">
+               <LinkAuthenticationElement onChange={e => setEmail(e.value.email)} />
+            </div>
         </CardContent>
         <CardFooter>
           <Button disabled={stripe == null || Element == null || IsLoading} className="">Purchase - {formatCurreny(priceInCents / 100)}</Button>
