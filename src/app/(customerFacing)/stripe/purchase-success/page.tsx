@@ -37,7 +37,7 @@ const SuccessPage = async ({searchParams,}: {searchParams: {payment_intent: stri
           <div className="line-clamp-3 text-muted-foreground">
             {product.description}
           </div>
-         <Button className="mt-4" size="lg" asChild>{isSuccess ? (<a></a>) : (<Link href={`/products/${product.id}/purchase`}>Try again</Link>)}</Button>
+         <Button className="mt-4" size="lg" asChild>{isSuccess ? (<a href={`/products/download/${await createDownloadVerficationCode(product.id)}`}>Download</a>) : (<Link href={`/products/${product.id}/purchase`}>Try again</Link>)}</Button>
       </div>
     </div>
   </div>
@@ -45,3 +45,15 @@ const SuccessPage = async ({searchParams,}: {searchParams: {payment_intent: stri
 }
 
 export default SuccessPage
+
+
+const createDownloadVerficationCode = async(productId:string) => {
+  return (
+    await db.downloadVerfication.create({
+      data: {
+        productId,
+        expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24)
+      }
+    })
+  ).id
+}
